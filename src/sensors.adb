@@ -4,6 +4,8 @@ with Interfaces.C.Strings;
 with Interfaces.C_Streams;
 with Sensors.Conversions;
 with Sensors.LibSensors.Sensors_Sensors_H;
+with Sensors.LibSensors.Sensors_Error_H;
+with Ada.IO_Exceptions;
 package body Sensors is
 
    API_VERSION : constant := 16#500#;
@@ -11,16 +13,16 @@ package body Sensors is
    pragma Compile_Time_Error (API_VERSION /= Sensors.LibSensors.Sensors_Sensors_H.SENSORS_API_VERSION, "Incompatible APIs");
 
    use Ada.Text_IO;
-   use all type Interfaces.C.Int;
+   use all type Interfaces.C.int;
    use Sensors.LibSensors.Sensors_Sensors_H;
 
-   function Error_Image (Code : Interfaces.C.Int) return String is
+   function Error_Image (Code : Interfaces.C.int) return String is
    begin
-      return "[" & Code'Img &  "]";
+      return "[" & Code'Img &  "] : " & Interfaces.C.Strings.Value (Sensors.LibSensors.Sensors_Error_H.Sensors_Strerror (Code));
    end;
 
    function Get_Instance (Config_Path : String := "/etc/sensors3.conf") return Instance is
-      Ret           : Interfaces.C.Int;
+      Ret           : Interfaces.C.int;
       Mode          : String := "r" & ASCII.NUL;
       L_Config_Path : constant String := Config_Path & ASCII.NUL;
       F             : aliased Interfaces.C_Streams.FILEs;
@@ -28,8 +30,8 @@ package body Sensors is
    begin
       return Object : Instance do
          F := Interfaces.C_Streams.Fopen (Filename => L_Config_Path'Address, Mode => Mode'Address);
-        if F = Interfaces.C_Streams.NULL_Stream  then
-            raise Sensors_Error with "Unable to read:" & Config_Path;
+         if F = Interfaces.C_Streams.NULL_Stream  then
+            raise Ada.IO_Exceptions.Name_Error with "Unable to open:" & Config_Path;
          end if;
          Ret := Sensors_Init (F);
          if Interfaces.C_Streams.Fclose (F) /= 0 then
@@ -69,7 +71,7 @@ package body Sensors is
    function Cursor_Has_Element
      (Cont : Chips_Iterator; Position : Cursor) return Boolean
    is
-      C : aliased Interfaces.C.Int := Position.I;
+      C   : aliased Interfaces.C.int := Position.I;
       Ret : access constant Sensors_Chip_Name;
    begin
       Put_Line (GNAT.Source_Info.Enclosing_Entity);
@@ -82,9 +84,10 @@ package body Sensors is
    -----------------
 
    function Get_Element
-     (Cont : Chips_Iterator; Position : Cursor) return Chip_Name
+     (Cont : Chips_Iterator; Position : Cursor) return Chip_Name'Class
    is
-      C : aliased Interfaces.C.Int := Position.I;
+      pragma Unreferenced (Cont);
+      C : aliased Interfaces.C.int := Position.I;
    begin
       Put_Line (GNAT.Source_Info.Enclosing_Entity);
       return Conversions.Convert_Up (Sensors_Get_Detected_Chips (null, C'Access).all);
@@ -118,8 +121,8 @@ package body Sensors is
    end;
 
 
-begin
-   if Binding_Version /= Version then
-      raise Program_Error with "Binding version missmatch";
-   end if;
+--  begin
+--     if Binding_Version /= Version then
+--        raise Program_Error with "Binding version missmatch";
+--     end if;
 end Sensors;

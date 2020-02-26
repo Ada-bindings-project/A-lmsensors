@@ -8,4 +8,5 @@
 
 private package Sensors.LibSensors is
    pragma Linker_Options ("-l" & "sensors");
+   pragma Linker_Options ("-l" & "m");
 end Sensors.libSensors;

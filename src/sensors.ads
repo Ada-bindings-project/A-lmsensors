@@ -12,12 +12,13 @@ package Sensors is
 
    type Instance (<>) is tagged private;
    function Get_Instance (Config_Path : String := "/etc/sensors3.conf") return Instance;
+
    type Bus_Id is record
       Sensor_Type : Natural;
       Nr          : Natural;
    end record;
 
-   type Chip_Name is record
+   type Chip_Name is tagged record
       Prefix : Ada.Strings.Unbounded.Unbounded_String;
       Bus    : Bus_Id;
       Addr   : Integer;
@@ -33,7 +34,7 @@ package Sensors is
    function First_Cursor (Cont : Chips_Iterator) return Cursor;
    function Advance (Cont : Chips_Iterator; Position : Cursor) return Cursor;
    function Cursor_Has_Element (Cont : Chips_Iterator; Position : Cursor) return Boolean;
-   function Get_Element (Cont : Chips_Iterator; Position : Cursor) return Chip_Name;
+   function Get_Element (Cont : Chips_Iterator; Position : Cursor) return Chip_Name'class;
    type Feature_Type is (FEATURE_IN,
                          FEATURE_FAN,
                          FEATURE_TEMP,
@@ -60,6 +61,7 @@ package Sensors is
    function Detected_Chips (Self : Instance) return Chips_Iterator'Class;
    Sensors_Error : exception ;
    function Version return String;
+
 private
 
    type Cursor (Ref : not null access Chips_Iterator) is record

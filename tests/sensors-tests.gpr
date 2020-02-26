@@ -1,4 +1,3 @@
-with "syst/syst_default.ss/syst_default.gpr";
 with "../sensors.gpr";
 
 project Sensors.Tests is
@@ -9,15 +8,15 @@ project Sensors.Tests is
    for Exec_Dir use "bin";
 
    package Builder is
-      for Default_Switches ("ada") use Syst_Default.Builder'Default_Switches ("Ada");
+      for Default_Switches ("ada") use sensors.Builder'Default_Switches ("Ada");
    end Builder;
 
    package Compiler is
-      for Default_Switches ("ada") use Syst_Default.Compiler'Default_Switches ("Ada");
+      for Default_Switches ("ada") use sensors.Compiler'Default_Switches ("Ada");
    end Compiler;
 
    package Binder is
-      for Default_Switches ("ada") use Syst_Default.Binder'Default_Switches ("Ada");
+      for Default_Switches ("ada") use sensors.Binder'Default_Switches ("Ada");
    end Binder;
 
    for Main use ("sensors-tests-main.adb");

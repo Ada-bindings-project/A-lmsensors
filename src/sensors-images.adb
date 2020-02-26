@@ -16,7 +16,7 @@ package body Sensors.Images is
    -- Image --
    -----------
 
-   function Image (Source : Chip_Name) return String is
+   function Image (Source : Chip_Name'class) return String is
    begin
       return
         "(Prefix => " & Image (Source.Prefix) & "," &

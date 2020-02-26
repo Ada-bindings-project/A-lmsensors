@@ -17,3 +17,5 @@ b__*
 *.map
 *.bexch
 *-main
+*.cswi
+*.deps

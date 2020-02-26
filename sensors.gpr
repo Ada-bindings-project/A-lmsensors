@@ -1,4 +1,4 @@
--- with "syst/syst_default.ss/syst_default.gpr";
+with "libsensors";
 library project Sensors is
 
    for Source_Dirs use ("src/**");
