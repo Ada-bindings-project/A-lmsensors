@@ -10,8 +10,8 @@ private with Interfaces.C;
 package Sensors is
    Binding_Version : constant String := "3.5.0";
 
-   type Instance (<>) is tagged private;
-   function Get_Instance (Config_Path : String := "/etc/sensors3.conf") return Instance;
+   type Instance (<>) is tagged limited private;
+   function Get_Instance (Config_Path : String := "") return Instance;
 
    type Bus_Id is record
       Sensor_Type : Natural;
@@ -23,18 +23,21 @@ package Sensors is
       Bus    : Bus_Id;
       Addr   : Integer;
       Path   : Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-   type Cursor (<>) is private;
+   end record ;
+
+
+   type Chips_Cursor (<>) is private;
    type Chips_Iterator (<>) is tagged limited private with
      Iterable => (First           => First_Cursor,
                   Next            => Advance,
                   Has_Element     => Cursor_Has_Element,
                   Element         => Get_Element);
 
-   function First_Cursor (Cont : Chips_Iterator) return Cursor;
-   function Advance (Cont : Chips_Iterator; Position : Cursor) return Cursor;
-   function Cursor_Has_Element (Cont : Chips_Iterator; Position : Cursor) return Boolean;
-   function Get_Element (Cont : Chips_Iterator; Position : Cursor) return Chip_Name'class;
+
+   function First_Cursor (Cont : Chips_Iterator) return Chips_Cursor;
+   function Advance (Cont : Chips_Iterator; Position : Chips_Cursor) return Chips_Cursor;
+   function Cursor_Has_Element (Cont : Chips_Iterator; Position : Chips_Cursor) return Boolean;
+   function Get_Element (Cont : Chips_Iterator; Position : Chips_Cursor) return Chip_Name'class;
    type Feature_Type is (FEATURE_IN,
                          FEATURE_FAN,
                          FEATURE_TEMP,
@@ -64,11 +67,11 @@ package Sensors is
 
 private
 
-   type Cursor (Ref : not null access Chips_Iterator) is record
+   type Chips_Cursor (Ref : not null access Chips_Iterator) is record
       I : aliased Interfaces.C.Int := 0;
    end record;
 
-   type Instance is new Ada.Finalization.Controlled with record
+   type Instance is new Ada.Finalization.Limited_Controlled with record
       null;
    end record;
 

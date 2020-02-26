@@ -5,7 +5,11 @@ procedure Sensors.Tests.Main is
    S : constant Sensors.Instance := Get_Instance;
 begin
    Put_Line (Sensors.Version);
-   for I of S.Detected_Chips loop
-      Put_Line (Image (I));
+   for chip  of S.Detected_Chips loop
+      Put_Line (Image (chip));
+--        for Sensor of Chip loop
+--           null;
+--        end loop;
+
    end loop;
 end;

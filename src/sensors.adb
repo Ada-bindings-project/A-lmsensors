@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-with GNAT.Source_Info;
 with Interfaces.C.Strings;
 with Interfaces.C_Streams;
 with Sensors.Conversions;
@@ -12,7 +10,6 @@ package body Sensors is
 
    pragma Compile_Time_Error (API_VERSION /= Sensors.LibSensors.Sensors_Sensors_H.SENSORS_API_VERSION, "Incompatible APIs");
 
-   use Ada.Text_IO;
    use all type Interfaces.C.int;
    use Sensors.LibSensors.Sensors_Sensors_H;
 
@@ -21,21 +18,25 @@ package body Sensors is
       return "[" & Code'Img &  "] : " & Interfaces.C.Strings.Value (Sensors.LibSensors.Sensors_Error_H.Sensors_Strerror (Code));
    end;
 
-   function Get_Instance (Config_Path : String := "/etc/sensors3.conf") return Instance is
+   function Get_Instance (Config_Path : String := "") return Instance is
       Ret           : Interfaces.C.int;
       Mode          : String := "r" & ASCII.NUL;
       L_Config_Path : constant String := Config_Path & ASCII.NUL;
-      F             : aliased Interfaces.C_Streams.FILEs;
+      F             : aliased Interfaces.C_Streams.FILEs := Interfaces.C_Streams.NULL_Stream;
       use all type Interfaces.C_Streams.FILEs;
    begin
       return Object : Instance do
-         F := Interfaces.C_Streams.Fopen (Filename => L_Config_Path'Address, Mode => Mode'Address);
-         if F = Interfaces.C_Streams.NULL_Stream  then
-            raise Ada.IO_Exceptions.Name_Error with "Unable to open:" & Config_Path;
+         if Config_Path /= "" then
+            F := Interfaces.C_Streams.Fopen (Filename => L_Config_Path'Address, Mode => Mode'Address);
+            if F = Interfaces.C_Streams.NULL_Stream  then
+               raise Ada.IO_Exceptions.Name_Error with "Unable to open:" & Config_Path;
+            end if;
          end if;
          Ret := Sensors_Init (F);
-         if Interfaces.C_Streams.Fclose (F) /= 0 then
-            null;
+         if F /= Interfaces.C_Streams.NULL_Stream then
+            if Interfaces.C_Streams.Fclose (F) /= 0 then
+               null;
+            end if;
          end if;
          if Ret /= 0 then
             raise Sensors_Error with Error_Image (Ret);
@@ -47,21 +48,19 @@ package body Sensors is
    -- First_Cursor --
    ------------------
 
-   function First_Cursor (Cont : Chips_Iterator) return Cursor is
+   function First_Cursor (Cont : Chips_Iterator) return Chips_Cursor is
    begin
-      Put_Line (GNAT.Source_Info.Enclosing_Entity);
-      return Cursor'(Cont'Unrestricted_Access, 0);
+      return Chips_Cursor'(Cont'Unrestricted_Access, 0);
    end First_Cursor;
 
    -------------
    -- Advance --
    -------------
 
-   function Advance (Cont : Chips_Iterator; Position : Cursor) return Cursor
+   function Advance (Cont : Chips_Iterator; Position : Chips_Cursor) return Chips_Cursor
    is
    begin
-      Put_Line (GNAT.Source_Info.Enclosing_Entity);
-      return Cursor'(Position.Ref, Position.I + 1);
+      return Chips_Cursor'(Position.Ref, Position.I + 1);
    end;
 
    ------------------------
@@ -69,12 +68,11 @@ package body Sensors is
    ------------------------
 
    function Cursor_Has_Element
-     (Cont : Chips_Iterator; Position : Cursor) return Boolean
+     (Cont : Chips_Iterator; Position : Chips_Cursor) return Boolean
    is
       C   : aliased Interfaces.C.int := Position.I;
       Ret : access constant Sensors_Chip_Name;
    begin
-      Put_Line (GNAT.Source_Info.Enclosing_Entity);
       Ret := Sensors_Get_Detected_Chips (null, C'Access);
       return Ret /= null;
    end Cursor_Has_Element;
@@ -84,12 +82,11 @@ package body Sensors is
    -----------------
 
    function Get_Element
-     (Cont : Chips_Iterator; Position : Cursor) return Chip_Name'Class
+     (Cont : Chips_Iterator; Position : Chips_Cursor) return Chip_Name'Class
    is
       pragma Unreferenced (Cont);
       C : aliased Interfaces.C.int := Position.I;
    begin
-      Put_Line (GNAT.Source_Info.Enclosing_Entity);
       return Conversions.Convert_Up (Sensors_Get_Detected_Chips (null, C'Access).all);
    end Get_Element;
 
@@ -99,7 +96,6 @@ package body Sensors is
 
    function Detected_Chips (Self : Instance) return Chips_Iterator'Class is
    begin
-      Put_Line (GNAT.Source_Info.Enclosing_Entity);
       return Ret : Chips_Iterator do
          null;
       end return;
