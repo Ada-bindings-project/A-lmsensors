@@ -37,7 +37,7 @@ package Sensors is
    function First_Cursor (Cont : Chips_Iterator) return Chips_Cursor;
    function Advance (Cont : Chips_Iterator; Position : Chips_Cursor) return Chips_Cursor;
    function Cursor_Has_Element (Cont : Chips_Iterator; Position : Chips_Cursor) return Boolean;
-   function Get_Element (Cont : Chips_Iterator; Position : Chips_Cursor) return Chip_Name'class;
+   function Get_Element (Cont : Chips_Iterator; Position : Chips_Cursor) return Chip_Name'Class;
    type Feature_Type is (FEATURE_IN,
                          FEATURE_FAN,
                          FEATURE_TEMP,

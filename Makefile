@@ -1,9 +1,9 @@
 
 all: test
 
-gen:src/gen/sensors-libsensors-sensors_sensors_h.ads
+genenerate:src/gen/sensors-libsensors-sensors_sensors_h.ads
 
-src/gen/sensors-libsensors-sensors_sensors_h.ads:/usr/include/sensors/sensors.h
+src/gen/sensors-libsensors-sensors_sensors_h.ads:/usr/include/sensors/sensors.h /usr/include/sensors/error.h
 	rm -rf .gen src/gen ; mkdir -p .gen src/gen
 	echo "#include <sensors/error.h>" >.gen/gen.cc
 	echo "#include <sensors/sensors.h>" >>.gen/gen.cc
@@ -13,6 +13,7 @@ src/gen/sensors-libsensors-sensors_sensors_h.ads:/usr/include/sensors/sensors.h
 	sed -f all.sed -i src/gen/*.ads
 	gprbuild -p -P sensors.gpr
 
+/usr/include/sensors/sensors.h /usr/include/sensors/error.h:prereqisits
 prereqisits:
 	if [ -e /etc/debian_version ] ; then\
 		sudo apt-get install -y libsensors4-dev lm-sensors ;\
@@ -22,4 +23,8 @@ test:
 	${MAKE} -C tests all
 
 clean:
-	git clean -xdf
+	git clean . -xdf
+
+save:
+	tar -czf ../sensors.tgz .
+
